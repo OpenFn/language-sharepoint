@@ -1,87 +1,57 @@
-Language DHIS2
-==============
+Language SharePoint
+===================
 
 Language Pack for building expressions and operations for working with
-the [DHIS2 API](http://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual.html).
+the [SharePoint REST API](https://msdn.microsoft.com/en-us/library/office/jj164022.aspx).
 
 Documentation
 -------------
 ## Events API
 
-#### Desired `Events API` expression:
+#### Desired create expression:
 ```js
-events("program", "orgUnit", fields(
+create("SP.List", fields(
+  field("Title", "New title"),
   field(...),
+  field(...)
+))
+```
+#### Desired update expression:
+```js
+// url: "http://<site url>/_api/web/lists/GetByTitle('Test')",
+update("SP.List", "Original Title", fields(
+  field("Title", "New title"),
   field(...),
-  field(...),
-  dataValues(
-    field("dataElement", "value"),
-    field("dataElement", "value"),
-    field("dataElement", "value")
-  )
+  field(...)
 ))
 ```
 
-#### Current `Events API` expression—too bulky
+
+### From SharePoint docs:
+
+`You can create and update SharePoint entities by constructing RESTful HTTP requests to the appropriate endpoints, just as you do when you’re reading data. One key difference, however, is that you use a POST request. When you’re updating entities, you also pass a PUT or MERGE HTTP request method by adding one of those terms to the headers of your request as the value of the X-HTTP-Method key. The MERGE method updates only the properties of the entity that you specify, while the PUT method replaces the existing entity with a new one that you supply in the body of the POST. Use the DELETE method to delete the entity. When you create or update an entity, you must provide an OData representation of the entity that you want to create or change in the body of your HTTP request.
+Another important consideration when creating, updating, and deleting SharePoint entities is that if you aren’t using OAuth to authorize your requests, these operations require the server’s request form digest value as the value of the X-RequestDigest header. You can retrieve this value by making a POST request with an empty body to http://<site url>/_api/contextinfo and extracting the value of the d:FormDigestValue node in the XML that the contextinfo endpoint returns. The following example shows an HTTP request to the contextinfo endpoint in C#.`
+
+
+### SharePoint docs sample code:
 ```js
-event(
-  fields(
-    field("program", "eBAyeGv0exc"),
-    field("orgUnit", "DiszpKrYNg8"),
-    field("eventDate", dataValue("date")),
-    field("status", "COMPLETED"),
-    field("storedBy", "admin"),
-    field("coordinate", {
-      "latitude": "59.8",
-      "longitude": "10.9"
-    }),
-    field("dataValues", function(state) {
-      return [
-        dataElement("qrur9Dvnyt5", dataValue("prop_a"))(state)
-        dataElement("oZg33kd9taw", dataValue("prop_b"))(state)
-        dataElement("msodh3rEMJa", dataValue("prop_c"))(state)
-      ]
-    })
-  )
-)
+jQuery.ajax({
+        url: "http://<site url>/_api/web/lists",
+        type: "POST",
+        data:  JSON.stringify({ '__metadata': { 'type': 'SP.List' }, 'AllowContentTypes': true,
+ 'BaseTemplate': 100, 'ContentTypesEnabled': true, 'Description': 'My list description', 'Title': 'Test' }
+),
+        headers: {
+            "accept": "application/json;odata=verbose",
+            "content-type": "application/json;odata=verbose",
+            "content-length": <length of post body>,
+            "X-RequestDigest": $("#__REQUESTDIGEST").val()
+        },
+        success: doSuccess,
+        error: doError
+});
 ```
 
-## Data Values / Data Value Sets API
-
-#### Desired `DataValueSets API` expression:
-```js
-dataValueSet("dataSet", "orgUnit", fields(
-  field(...),
-  field(...),
-  field(...),
-  dataValues(
-    field("dataElement", "value"),
-    field("dataElement", "value"),
-    field("dataElement", "value")
-  )
-))
-```
-
-#### Current `DataValueSets API` expression—too bulky
-```js
-dataValueSet(
-  fields(
-    field("dataSet", "pBOMPrpg1QX"),
-    field("orgUnit", "DiszpKrYNg8"),
-    field("period", "201401"),
-    field("completeData", dataValue("date")),
-    field("dataValues", function(state) {
-      return [
-        { "dataElement": "f7n9E0hX8qk", "value": dataValue("prop_a")(state) },
-        { "dataElement": "Ix2HsbDMLea", "value": dataValue("prop_b")(state) },
-        { "dataElement": "eY5ehpbEsB7", "value": dataValue("prop_c")(state) }
-      ]
-    })
-  )
-)
-```
-
-[Docs](docs/index)
 
 
 Development
